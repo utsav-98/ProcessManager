@@ -82,7 +82,7 @@ there's like 10 different color themes (most of them suck, but Nord and Catppucc
 
 ## todo
 
--  [ ] maybe add network stats?
+-  [ ] Add network status?
 -  [ ] tree view for parent/child processes
 -  [x] Toggle Memory format <MB || KB>
 -  [x] conformation to kill specific process
