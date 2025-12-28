@@ -560,7 +560,7 @@ int handle_input(int ch, ProcessList *list, int *selected_index, int *scroll_off
     int list_height = height - 14;
     if (list_height < 1) list_height = 1;
 
-    // searching
+    // search mode input handling
     if (is_searching) {
         if (ch == 27) {  // ESC
             is_searching = 0;
@@ -575,7 +575,7 @@ int handle_input(int ch, ProcessList *list, int *selected_index, int *scroll_off
                 list->filter[len - 1] = '\0';
                 return ACTION_REFRESH;
             }
-        } else if (ch >= 32 && ch <= 126) {
+        } else if (ch >= 32 && ch <= 126) {  // printable chars
             size_t len = strlen(list->filter);
             if (len < sizeof(list->filter) - 1) {
                 list->filter[len] = (char)ch;
@@ -598,7 +598,7 @@ int handle_input(int ch, ProcessList *list, int *selected_index, int *scroll_off
         return ACTION_NONE;
     }
 
-    // kill popup
+    // kill confirmation input handling
     if (show_kill_confirm) {
         if (ch == 'y' || ch == 'Y' || (ch == '\n' && kill_confirm_selected == 0)) {
             kill(kill_confirm_pid, 9); // SIGKILL
@@ -617,7 +617,7 @@ int handle_input(int ch, ProcessList *list, int *selected_index, int *scroll_off
         return ACTION_NONE;
     }
 
-    // help menu
+    // help menu input handling
     if (show_help) {
         if (ch == 'h' || ch == 'H' || ch == 27 || ch == 'q') {
             show_help = 0;
@@ -708,7 +708,7 @@ int handle_input(int ch, ProcessList *list, int *selected_index, int *scroll_off
                 return ACTION_REDRAW;
             }
             break;
-        case 'K':
+        case 'K':  // kill process confirmation
             if (list->count > 0 && *selected_index < list->count) {
                  kill_confirm_pid = list->processes[*selected_index].pid;
                  strncpy(kill_confirm_name, list->processes[*selected_index].name, sizeof(kill_confirm_name) - 1);
@@ -736,12 +736,6 @@ int handle_input(int ch, ProcessList *list, int *selected_index, int *scroll_off
         case 't':
             toggle_theme();
             return ACTION_REDRAW;
-        case 27:
-            if (list->filter[0] != '\0') {
-                list->filter[0] = '\0';
-                return ACTION_REFRESH;
-            }
-            break;
         case '\n':
         case KEY_ENTER:
             show_process_details = !show_process_details;
