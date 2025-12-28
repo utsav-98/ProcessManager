@@ -512,13 +512,14 @@ void refresh_process_list(ProcessList *list, ProcessList *prev_list) {
              p->command[sizeof(p->command) - 1] = '\0';
         }
 
-        // apply filter if active
+        // filter stuff
         if (list->filter[0] != '\0') {
             char pid_str[32];
             snprintf(pid_str, 32, "%d", p->pid);
             
             if (!strcasestr(p->command, list->filter) && 
                 !strcasestr(p->user, list->filter) &&
+                !strcasestr(p->name, list->filter) &&
                 !strstr(pid_str, list->filter)) {
                 continue; // doesn't match, skip it
             }

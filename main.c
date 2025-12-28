@@ -6,11 +6,10 @@
 #include <string.h>
 #include <unistd.h>
 
-// TODO: maybe add network stats later?
-// FIXME: sometimes selection jumps around when filtering
+// TODO: network stats?
+// FIXME: selection jumps when filtering? fixed?
 
 int main() {
-  // double buffering - basically we keep 2 lists to compare CPU usage
   ProcessList *list = create_process_list();
   ProcessList *prev_list = create_process_list();
 
@@ -31,7 +30,6 @@ int main() {
   SystemInfo sys_info = {0};
   int needs_redraw = 1;
 
-  // main loop - runs forever until user quits
   while (1) {
     if (needs_redraw) {
       get_system_info(&sys_info, list, prev_list);
@@ -39,101 +37,78 @@ int main() {
       needs_redraw = 0;
     }
 
-    ch = getch(); // timeout is 100ms, set in init_ui()
+    ch = getch(); 
 
     if (ch == 'q') {
-      break; // bye bye
-
-    } else if (ch != ERR) {
-      int action = handle_input(ch, list, &selected_index, &scroll_offset);
-
-      if (action == ACTION_REFRESH) {
-        refresh_process_list(list, prev_list);
-
-        // bounds check
-        if (selected_index >= list->count)
-          selected_index = list->count - 1;
-        if (selected_index < 0)
-          selected_index = 0;
-
-        needs_redraw = 1;
-
-      } else if (action == ACTION_REDRAW) {
-        needs_redraw = 1;
+      break; 
+    } else if (ch != ERR || needs_redraw) {
+      pid_t saved_pid = -1;
+      if (selected_index < list->count) {
+        saved_pid = list->processes[selected_index].pid;
       }
 
-    } else {
-      // no input, check if we should auto-refresh
+      int action = ACTION_NONE;
+      if (ch != ERR) {
+        action = handle_input(ch, list, &selected_index, &scroll_offset);
+      }
+
       static int refresh_counter = 0;
-      refresh_counter++;
-
-      // refresh every ~1 second (10 * 100ms)
-      if (refresh_counter > 10) {
-        pid_t current_pid = -1;
-        if (selected_index < list->count) {
-          current_pid = list->processes[selected_index].pid;
+      int refresh_now = (action == ACTION_REFRESH);
+      
+      if (ch == ERR) {
+        if (++refresh_counter > 10) {
+            refresh_now = 1;
+            refresh_counter = 0;
         }
+      }
 
-        // swap the buffers - this is faster than copying
+      if (refresh_now) {
         ProcessList *temp = prev_list;
         prev_list = list;
         list = temp;
 
-        // copy UI state
         list->sort_mode = prev_list->sort_mode;
         strcpy(list->filter, prev_list->filter);
 
         refresh_process_list(list, prev_list);
+        needs_redraw = 1;
+      }
 
-        // if filter returns nothing, clear it
-        if (list->count == 0 && list->filter[0] != '\0') {
-          list->filter[0] = '\0';
-          reset_search_mode();
-          refresh_process_list(list, prev_list);
-        }
-
-        // try to keep same process selected
-        if (current_pid != -1) {
+      if (refresh_now || action == ACTION_REDRAW || action == ACTION_REFRESH) {
+        if (saved_pid != -1) {
           int found = 0;
-
           for (int i = 0; i < list->count; i++) {
-            if (list->processes[i].pid == current_pid) {
+            if (list->processes[i].pid == saved_pid) {
               selected_index = i;
               found = 1;
               break;
             }
           }
-
           if (!found) {
-            if (selected_index >= list->count)
-              selected_index = list->count - 1;
-            if (selected_index < 0)
-              selected_index = 0;
+            if (selected_index >= list->count) selected_index = list->count - 1;
+            if (selected_index < 0) selected_index = 0;
           }
-
-          // make sure selected item is visible
-          int height, width;
-          getmaxyx(stdscr, height, width);
-          (void)width; // shut up compiler
-
-          int list_height = height - 14;
-          if (list_height < 1)
-            list_height = 1;
-
-          if (selected_index < scroll_offset) {
-            scroll_offset = selected_index;
-          } else if (selected_index >= scroll_offset + list_height) {
-            scroll_offset = selected_index - list_height + 1;
-          }
+        } else {
+          if (selected_index >= list->count) selected_index = list->count - 1;
+          if (selected_index < 0) selected_index = 0;
         }
 
+        int h, w;
+        getmaxyx(stdscr, h, w);
+        int lh = h - 14;
+        if (lh < 1) lh = 1;
+
+        if (selected_index < scroll_offset) scroll_offset = selected_index;
+        else if (selected_index >= scroll_offset + lh) scroll_offset = selected_index - lh + 1;
+
+        if (scroll_offset > list->count - lh) scroll_offset = list->count - lh;
+        if (scroll_offset < 0) scroll_offset = 0;
+        
         needs_redraw = 1;
-        refresh_counter = 0;
       }
     }
   }
 
-  // cleanup
   cleanup_ui();
   free_process_list(list);
   free_process_list(prev_list);
