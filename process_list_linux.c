@@ -48,13 +48,13 @@ static int is_numeric(const char *str) {
 static long unsigned int get_memory_usage(const char *pid_str) {
     char path[256];
     snprintf(path, sizeof(path), "/proc/%s/status", pid_str);
-    
+
     FILE *f = fopen(path, "r");
     if (!f) return 0; // process probably died
 
     char line[256];
     long unsigned int mem = 0;
-    
+
     while (fgets(line, sizeof(line), f)) {
         if (strncmp(line, "VmRSS:", 6) == 0) {
             sscanf(line, "VmRSS: %lu", &mem);

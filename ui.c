@@ -6,6 +6,10 @@
 #include "ui.h"
 #include "process_list.h"
 
+#ifdef __APPLE__
+#define BUTTON5_PRESSED BUTTON_CTRL
+#endif
+
 // Theme enum - added more themes because why not
 typedef enum {
     THEME_DEFAULT,

@@ -3,9 +3,20 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g
 LDFLAGS = -lncurses
+OS = $(shell uname -s)
 
 TARGET = process_manager
-SRCS = main.c process_list.c ui.c
+SRCS = main.c ui.c
+
+ifeq ($(OS),Darwin)
+	SRCS += process_list_macos.c
+	CFLAGS += -D__APPLE__
+else ifeq ($(OS),Linux)
+	SRCS += process_list_linux.c
+else
+	$(error Unsupported OS: $(OS))
+endif
+
 OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)
