@@ -34,30 +34,36 @@ sudo dnf install ncurses-devel
 then just:
 
 ```bash
-make
-./process_manager
+  make
+./prcsmgr
+
+```
+
+```bash
+# to install globally
+sudo make install
 ```
 
 ## controls
 
-| key           | what it does                          |
-| ------------- | ------------------------------------- |
-| q             | quit                                  |
-| j/k or arrows | move up/down                          |
-| gg            | jump to top (vim style)               |
-| G             | jump to bottom                        |
-| m             | sort by memory                        |
-| c             | sort by CPU                           |
-| p             | sort by PID                           |
-| t             | change theme                          |
-| /             | search/filter                         |
-| ESC           | clear filter                          |
-| Enter         | show/hide process details             |
-| 1             | toggle per-core CPU view              |
-| M             | toggle memory format (KB/MB)          |
-| H             | open/hide help menu                   |
-| K             | kill process (sends SIGKILL with popup)|
-| h / l         | select yes/no in kill popup           |
+| key           | what it does                            |
+| ------------- | --------------------------------------- |
+| q             | quit                                    |
+| j/k or arrows | move up/down                            |
+| gg            | jump to top (vim style)                 |
+| G             | jump to bottom                          |
+| m             | sort by memory                          |
+| c             | sort by CPU                             |
+| p             | sort by PID                             |
+| t             | change theme                            |
+| /             | search/filter                           |
+| ESC           | clear filter                            |
+| Enter         | show/hide process details               |
+| 1             | toggle per-core CPU view                |
+| M             | toggle memory format (KB/MB)            |
+| H             | open/hide help menu                     |
+| K             | kill process (sends SIGKILL with popup) |
+| h / l         | select yes/no in kill popup             |
 
 ## notes
 

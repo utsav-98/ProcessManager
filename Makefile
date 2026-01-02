@@ -1,12 +1,17 @@
-# simple makefile for task manager
+CC      := gcc
+CFLAGS  := -Wall -Wextra -std=c99 -O2 -g
+LDFLAGS := -lncurses
 
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g
-LDFLAGS = -lncurses
+# Installation setup
+PREFIX  ?= /usr/local
+BINDIR  := $(PREFIX)/bin
+TARGET  := prcsmgr
 
-TARGET = process_manager
-SRCS = main.c process_list.c ui.c
-OBJS = $(SRCS:.c=.o)
+# Source management
+SRCS    := main.c process_list.c ui.c
+OBJS    := $(SRCS:.c=.o)
+
+# --- Build Rules ---
 
 all: $(TARGET)
 
@@ -16,11 +21,21 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# --- Utility Tasks ---
+
 clean:
 	rm -f $(OBJS) $(TARGET)
 
-# run with sudo if you want to kill other users' processes
 run: $(TARGET)
 	./$(TARGET)
 
-.PHONY: all clean run
+# --- Installation ---
+
+install: $(TARGET)
+	mkdir -p $(DESTDIR)$(BINDIR)
+	install -m 755 $(TARGET) $(DESTDIR)$(BINDIR)/$(TARGET)
+
+uninstall:
+	rm -f $(DESTDIR)$(BINDIR)/$(TARGET)
+
+.PHONY: all clean run install uninstall
